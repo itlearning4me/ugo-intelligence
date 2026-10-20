@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ugo — Autonomous News Intelligence</title>
+<meta name="description" content="Ugo ingests 6,000+ sources a day, builds a knowledge graph, and synthesizes a daily intelligence brief of real, sourced opportunities across 50+ domains.">
+<meta property="og:title" content="Ugo — Autonomous News Intelligence">
+<meta property="og:description" content="Seven layers, one daily brief: how Ugo turns 6,000+ sources a day into sourced, scored opportunities.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#14181f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6 L4 40 L26 34 L20 58 L32 38 L44 58 L38 34 L60 40 Z' fill='%23d9a441'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #faf7f0;
+    --surface: #ffffff;
+    --surface-2: #f1ecdf;
+    --ink: #1b1a17;
+    --ink-dim: #635f52;
+    --border: #e4ddc8;
+    --amber: #a9690a;
+    --amber-soft: #fbeedb;
+    --teal: #0f6e68;
+    --teal-soft: #e3f1ee;
+    --shadow: 0 1px 2px rgba(27,26,23,0.05), 0 12px 30px rgba(27,26,23,0.06);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #13151a;
+      --surface: #191c22;
+      --surface-2: #20242b;
+      --ink: #ece8dc;
+      --ink-dim: #9b9686;
+      --border: #2d313a;
+      --amber: #e3a94f;
+      --amber-soft: #2b2113;
+      --teal: #4fcabd;
+      --teal-soft: #142926;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 30px rgba(0,0,0,0.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #13151a;
+    --surface: #191c22;
+    --surface-2: #20242b;
+    --ink: #ece8dc;
+    --ink-dim: #9b9686;
+    --border: #2d313a;
+    --amber: #e3a94f;
+    --amber-soft: #2b2113;
+    --teal: #4fcabd;
+    --teal-soft: #142926;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 30px rgba(0,0,0,0.45);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .display { font-family: "Fraunces", Georgia, serif; text-wrap: balance; }
+  code, .mono, .kicker, .stat-label, .pill { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+
+  a { color: var(--teal); text-decoration-color: color-mix(in srgb, var(--teal) 40%, transparent); }
+  a:hover { text-decoration-color: var(--teal); }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle {
+    position: fixed;
+    top: calc(16px + var(--safe-top));
+    right: 16px;
+    z-index: 20;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    font-size: 15px;
+    color: var(--ink-dim);
+  }
+
+  /* ---------- hero ---------- */
+  header.hero {
+    padding: calc(76px + var(--safe-top)) 0 54px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mark {
+    width: 46px; height: 46px;
+    margin-bottom: 22px;
+    color: var(--amber);
+  }
+  .kicker {
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  h1.display {
+    font-size: clamp(2.1rem, 6vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.08;
+    margin: 0.5em 0 0.4em;
+    letter-spacing: -0.01em;
+  }
+  h1.display em { font-style: italic; color: var(--amber); }
+  .lede {
+    font-size: clamp(1.02rem, 2.4vw, 1.18rem);
+    color: var(--ink-dim);
+    max-width: 620px;
+    margin: 0 0 30px;
+  }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary { background: var(--amber); color: #201300; }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--border); }
+
+  /* ---------- sections ---------- */
+  section { padding: 50px 0; border-top: 1px solid var(--border); }
+  section .eyebrow {
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  section h2 {
+    font-size: clamp(1.4rem, 3.4vw, 1.8rem);
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+  section > p.intro { color: var(--ink-dim); max-width: 640px; margin: 0 0 32px; font-size: 1rem; }
+
+  /* ---------- pipeline diagram ---------- */
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .step {
+    flex: 1 1 130px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 14px;
+    box-shadow: var(--shadow);
+    min-width: 130px;
+  }
+  .step .n { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--teal); font-weight: 600; }
+  .step h3 { font-size: 0.98rem; margin: 6px 0 4px; font-weight: 600; }
+  .step p { margin: 0; font-size: 0.82rem; color: var(--ink-dim); }
+  .arrow {
+    color: var(--border);
+    font-size: 1.3rem;
+    flex: 0 0 auto;
+    display: none;
+  }
+  @media (min-width: 720px) { .arrow { display: block; } }
+
+  /* ---------- rigor cards ---------- */
+  .grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 640px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card .glyph { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--amber); font-weight: 600; margin-bottom: 8px; display: block; }
+  .card h3 { font-size: 1rem; margin: 0 0 6px; font-weight: 600; font-family: "Inter", sans-serif; }
+  .card p { margin: 0; font-size: 0.9rem; color: var(--ink-dim); }
+
+  /* ---------- stack ---------- */
+  .stack-group { margin-bottom: 26px; }
+  .stack-group h3 {
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 600;
+    font-family: "Inter", sans-serif;
+    margin: 0 0 12px;
+  }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    font-size: 0.82rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--ink);
+  }
+
+  /* ---------- stats ---------- */
+  .stat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (min-width: 640px) { .stat-row { grid-template-columns: repeat(4, 1fr); } }
+  .stat { text-align: left; }
+  .stat .num { font-family: "Fraunces", serif; font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 600; color: var(--amber); font-variant-numeric: tabular-nums; }
+  .stat .stat-label { font-size: 0.74rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-top: 2px; }
+
+  /* ---------- status ---------- */
+  .status-box {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--teal-soft);
+    border: 1px solid color-mix(in srgb, var(--teal) 30%, transparent);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--teal);
+    margin-top: 7px;
+    flex: 0 0 auto;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--teal) 18%, transparent);
+  }
+  .status-box p { margin: 0; font-size: 0.92rem; }
+  .status-box strong { color: var(--teal); }
+
+  footer {
+    padding: 36px 0 calc(40px + var(--safe-bottom));
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 14px;
+    font-size: 0.84rem;
+    color: var(--ink-dim);
+  }
+  footer .flinks { display: flex; gap: 18px; flex-wrap: wrap; }
+  footer a { color: var(--ink-dim); }
+  footer a:hover { color: var(--teal); }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle color theme" title="Toggle color theme">◐</button>
+
+<div class="wrap">
+
+  <header class="hero">
+    <svg class="mark" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
+      <path d="M32 6 L4 40 L26 34 L20 58 L32 38 L44 58 L38 34 L60 40 Z"/>
+    </svg>
+    <div class="kicker">Ugo &middot; Igbo for "Eagle"</div>
+    <h1 class="display">Autonomous intelligence,<br><em>one brief a day.</em></h1>
+    <p class="lede">Ugo reads what the world's newsrooms, filings and data feeds publish every day, turns it into a knowledge graph, and synthesizes a single structured brief of real, sourced opportunities — across more than 50 domains, every morning.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="https://app.ugo-intelligence.com">See today's brief →</a>
+      <a class="btn ghost" href="#architecture">How it works</a>
+    </div>
+  </header>
+
+  <section id="architecture">
+    <div class="eyebrow">Architecture</div>
+    <h2>Seven layers, one pipeline</h2>
+    <p class="intro">Each day's brief moves through seven distinct stages — ingestion, processing, a knowledge graph, a multi-agent reasoning pipeline, scoring, synthesis, and delivery. Nothing skips a stage.</p>
+    <div class="pipeline">
+      <div class="step"><div class="n">01</div><h3>Ingestion</h3><p>6,000+ RSS feeds, APIs and data sources polled continuously</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">02</div><h3>Processing</h3><p>Near-duplicate detection, credibility scoring, classification</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">03</div><h3>Knowledge</h3><p>Entity extraction and a relation graph — who's connected to what, and how</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">04</div><h3>Agents</h3><p>A multi-agent pipeline reasons from trend → problem → opportunity → solution</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">05</div><h3>Scoring</h3><p>Opportunities ranked on real, data-driven signals — not a model's gut feel</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">06</div><h3>Brief</h3><p>Synthesized into a single, structured daily brief with an AI-ready export</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="n">07</div><h3>Delivery</h3><p>Emailed and served through a web API, every morning</p></div>
+    </div>
+  </section>
+
+  <section id="rigor">
+    <div class="eyebrow">Design principle</div>
+    <h2>Built to not make things up</h2>
+    <p class="intro">The hardest problem in an AI research tool isn't generating opportunities — it's trusting them. Ugo is built around a small set of hard rules that constrain what the models are allowed to assert.</p>
+    <div class="grid-3">
+      <div class="card">
+        <span class="glyph">&ge;2</span>
+        <h3>Every claim needs sources</h3>
+        <p>No statement in a brief stands on one article. Each one is required to trace back to at least two independent source IDs.</p>
+      </div>
+      <div class="card">
+        <span class="glyph">DATA</span>
+        <h3>Numbers come from data, not prose</h3>
+        <p>Market-size figures are pulled from FRED, the World Bank and Statista — never generated by a language model.</p>
+      </div>
+      <div class="card">
+        <span class="glyph">✓✓</span>
+        <h3>A critic reviews every output</h3>
+        <p>A dedicated critic agent checks each other agent's output before it's allowed into the brief — nothing ships unreviewed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="eyebrow">Under the hood</div>
+    <h2>The stack</h2>
+    <p class="intro">Python throughout the backend, a multi-agent orchestration layer on top of Claude, and the kind of boring, reliable infrastructure that keeps a daily pipeline actually running every day.</p>
+
+    <div class="stack-group">
+      <h3>Backend &amp; data</h3>
+      <div class="pill-row">
+        <span class="pill">Python 3.12</span>
+        <span class="pill">FastAPI</span>
+        <span class="pill">PostgreSQL</span>
+        <span class="pill">Redis</span>
+        <span class="pill">Neo4j</span>
+        <span class="pill">Pinecone</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <h3>Intelligence</h3>
+      <div class="pill-row">
+        <span class="pill">Claude (Anthropic)</span>
+        <span class="pill">LangGraph multi-agent pipeline</span>
+        <span class="pill">spaCy NER</span>
+        <span class="pill">MinHash near-dup detection</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <h3>Frontend &amp; delivery</h3>
+      <div class="pill-row">
+        <span class="pill">Next.js</span>
+        <span class="pill">React</span>
+        <span class="pill">Resend</span>
+        <span class="pill">Stripe</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <h3>Infrastructure</h3>
+      <div class="pill-row">
+        <span class="pill">Self-hosted</span>
+        <span class="pill">Docker</span>
+        <span class="pill">Kubernetes (in progress)</span>
+        <span class="pill">Cloudflare</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="scale">
+    <div class="eyebrow">At a glance</div>
+    <h2>Scale</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="num">6,000+</div><span class="stat-label">sources ingested daily</span></div>
+      <div class="stat"><div class="num">50+</div><span class="stat-label">domains covered</span></div>
+      <div class="stat"><div class="num">7</div><span class="stat-label">pipeline layers</span></div>
+      <div class="stat"><div class="num">1</div><span class="stat-label">brief, every morning</span></div>
+    </div>
+  </section>
+
+  <section id="status">
+    <div class="eyebrow">Status</div>
+    <h2>Where things stand</h2>
+    <div class="status-box">
+      <div class="status-dot"></div>
+      <p><strong>Live and running.</strong> The full pipeline executes daily, end to end — ingestion through delivery. Infrastructure work is underway to move from a single self-hosted machine to a high-availability cluster, without changing anything about how the brief itself is built.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div>Ugo Intelligence &middot; built by one person, running every day.</div>
+    <div class="flinks">
+      <a href="https://app.ugo-intelligence.com">App</a>
+      <a href="mailto:hello@ugo-intelligence.com">Contact</a>
+      <a href="https://github.com/itlearning4me/ugo-intelligence">Source of this page</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var KEY = "ugo-theme";
+  var root = document.documentElement;
+  var btn = document.getElementById("themeToggle");
+
+  function apply(theme) {
+    if (theme === "light" || theme === "dark") {
+      root.setAttribute("data-theme", theme);
+    } else {
+      root.removeAttribute("data-theme");
+    }
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  apply(saved);
+
+  btn.addEventListener("click", function () {
+    var current = root.getAttribute("data-theme");
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var effectiveDark = current ? current === "dark" : prefersDark;
+    var next = effectiveDark ? "light" : "dark";
+    apply(next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+  });
+})();
+</script>
+
+</body>
+</html>
