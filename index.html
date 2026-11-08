@@ -2,396 +2,453 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Ugo: Autonomous News Intelligence</title>
 <meta name="description" content="Ugo ingests 6,000+ sources a day, builds a knowledge graph, and synthesizes a daily intelligence brief of real, sourced opportunities across 50+ domains.">
 <meta property="og:title" content="Ugo: Autonomous News Intelligence">
 <meta property="og:description" content="Seven layers, one daily brief: how Ugo turns 6,000+ sources a day into sourced, scored opportunities.">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#14181f">
+<meta name="theme-color" content="#11131c">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6 L4 40 L26 34 L20 58 L32 38 L44 58 L38 34 L60 40 Z' fill='%23d9a441'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  /* Same design system as infrastructure/: tokens, masthead, sticky pill nav,
+     numbered badges, notes and status pills. */
   :root {
-    --bg: #faf7f0;
+    --bg: #f7f8fb;
     --surface: #ffffff;
-    --surface-2: #f1ecdf;
-    --ink: #1b1a17;
-    --ink-dim: #635f52;
-    --border: #e4ddc8;
-    --amber: #a9690a;
-    --amber-soft: #fbeedb;
-    --teal: #0f6e68;
-    --teal-soft: #e3f1ee;
-    --shadow: 0 1px 2px rgba(27,26,23,0.05), 0 12px 30px rgba(27,26,23,0.06);
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --surface-muted: #eef0f6;
+    --fg: #1a1d29;
+    --muted: #5b6178;
+    --accent: #4338ca;
+    --accent-soft: #e8e6fb;
+    --border: #dde1ea;
+    --good: #0a7a4d;
+    --warn: #9a5b00;
+    --mark: #b7811f;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #13151a;
-      --surface: #191c22;
-      --surface-2: #20242b;
-      --ink: #ece8dc;
-      --ink-dim: #9b9686;
-      --border: #2d313a;
-      --amber: #e3a94f;
-      --amber-soft: #2b2113;
-      --teal: #4fcabd;
-      --teal-soft: #142926;
-      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 30px rgba(0,0,0,0.45);
+      --bg: #11131c;
+      --surface: #171a26;
+      --surface-muted: #1f2333;
+      --fg: #e8e9f1;
+      --muted: #9196ad;
+      --accent: #a5b0fc;
+      --accent-soft: #272b47;
+      --border: #2a2e42;
+      --good: #4fd999;
+      --warn: #f0b94d;
+      --mark: #d9a441;
+      color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #13151a;
-    --surface: #191c22;
-    --surface-2: #20242b;
-    --ink: #ece8dc;
-    --ink-dim: #9b9686;
-    --border: #2d313a;
-    --amber: #e3a94f;
-    --amber-soft: #2b2113;
-    --teal: #4fcabd;
-    --teal-soft: #142926;
-    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 30px rgba(0,0,0,0.45);
+    --bg: #11131c;
+    --surface: #171a26;
+    --surface-muted: #1f2333;
+    --fg: #e8e9f1;
+    --muted: #9196ad;
+    --accent: #a5b0fc;
+    --accent-soft: #272b47;
+    --border: #2a2e42;
+    --good: #4fd999;
+    --warn: #f0b94d;
+    --mark: #d9a441;
+    color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; }
   body {
     background: var(--bg);
-    color: var(--ink);
-    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
+    color: var(--fg);
+    font-family: "Source Sans 3", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding-inline: 20px;
+    padding-block: 0 48px;
   }
-  h1, h2, h3, .display { font-family: "Fraunces", Georgia, serif; text-wrap: balance; }
-  code, .mono, .kicker, .stat-label, .pill { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  h1, h2, h3 { font-family: "Sora", system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .mono { font-family: "JetBrains Mono", monospace; }
 
-  a { color: var(--teal); text-decoration-color: color-mix(in srgb, var(--teal) 40%, transparent); }
-  a:hover { text-decoration-color: var(--teal); }
+  .wrap { max-width: 860px; margin: 0 auto; }
 
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 20px; }
-
-  /* ---------- theme toggle ---------- */
-  .theme-toggle {
-    position: fixed;
-    top: calc(16px + var(--safe-top));
-    right: 16px;
-    z-index: 20;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    font-size: 15px;
-    color: var(--ink-dim);
+  /* ---------- masthead ---------- */
+  header.masthead {
+    padding-block: calc(44px + env(safe-area-inset-top, 0px)) 30px;
+    border-bottom: 1px solid var(--border);
   }
-
-  /* ---------- hero ---------- */
-  header.hero {
-    padding: calc(76px + var(--safe-top)) 0 54px;
-    position: relative;
-    overflow: hidden;
-  }
-  .mark {
-    width: 46px; height: 46px;
-    margin-bottom: 22px;
-    color: var(--amber);
-  }
-  .kicker {
-    font-size: 0.74rem;
-    letter-spacing: 0.1em;
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .brand svg { width: 30px; height: 30px; color: var(--mark); flex: 0 0 auto; }
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--teal);
-    font-weight: 600;
+    color: var(--muted);
   }
-  h1.display {
-    font-size: clamp(2.1rem, 6vw, 3.4rem);
-    font-weight: 600;
-    line-height: 1.08;
-    margin: 0.5em 0 0.4em;
-    letter-spacing: -0.01em;
-  }
-  h1.display em { font-style: italic; color: var(--amber); }
-  .lede {
-    font-size: clamp(1.02rem, 2.4vw, 1.18rem);
-    color: var(--ink-dim);
-    max-width: 620px;
-    margin: 0 0 30px;
-  }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  header.masthead h1 { font-size: 34px; font-weight: 700; line-height: 1.2; margin-bottom: 12px; }
+  header.masthead h1 span { color: var(--accent); }
+  header.masthead p.lede { color: var(--muted); font-size: 17px; max-width: 65ch; margin: 0; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
   .btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 20px;
-    border-radius: 9px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-decoration: none;
-    border: 1px solid transparent;
-    transition: transform 0.15s ease;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    background: var(--surface-muted);
   }
-  .btn:hover { transform: translateY(-1px); }
-  .btn.primary { background: var(--amber); color: #201300; }
-  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--border); }
+  .btn:hover { text-decoration: none; border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .btn.primary:hover { color: var(--bg); filter: brightness(1.08); }
+  .meta { margin-top: 18px; font-size: 13px; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+
+  /* ---------- sticky section nav ---------- */
+  nav.toc {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding-block: 10px;
+    margin-bottom: 8px;
+  }
+  nav.toc .toc-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  nav.toc .toc-scroll::-webkit-scrollbar { display: none; }
+  nav.toc a {
+    flex: 0 0 auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+  nav.toc a:hover { color: var(--accent); text-decoration: none; border-color: var(--accent); }
+  nav.toc .toc-sep { flex: 0 0 auto; width: 1px; background: var(--border); margin-inline: 4px; }
+  nav.toc a.part { color: var(--accent); border-color: var(--accent); }
 
   /* ---------- sections ---------- */
-  section { padding: 50px 0; border-top: 1px solid var(--border); }
-  section .eyebrow {
-    font-size: 0.74rem;
-    letter-spacing: 0.1em;
+  section.block { padding-block: 40px; border-bottom: 1px solid var(--border); scroll-margin-top: 56px; }
+  section.block:last-of-type { border-bottom: none; }
+  .section-eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--ink-dim);
-    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  section.block h2 { font-size: 24px; margin-bottom: 8px; }
+  section.block p.intro { color: var(--muted); max-width: 65ch; margin: 0 0 24px; }
+
+  /* ---------- architecture: seven numbered layers ---------- */
+  ol.layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ol.layers li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 14px;
+    align-items: baseline;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .job-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 6px;
+    padding: 3px 8px;
+    grid-row: span 2;
+    align-self: start;
+  }
+  ol.layers h3 { font-size: 17px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 10px; }
+  ol.layers p { margin: 0; color: var(--muted); font-size: 15px; }
+  .file-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 5px;
+    padding: 1px 7px;
+  }
+  @media (min-width: 720px) {
+    ol.layers { grid-template-columns: 1fr 1fr; }
+    ol.layers li:last-child { grid-column: 1 / -1; }
+  }
+
+  .note {
+    background: var(--surface-muted);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 68ch;
+    margin: 22px 0 0;
+  }
+  .note a { font-weight: 600; }
+
+  /* ---------- rigor: rules table ---------- */
+  .rules { display: grid; gap: 10px; }
+  @media (min-width: 640px) { .rules { grid-template-columns: repeat(3, 1fr); } }
+  .rule {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .rule .tag {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--good);
+    background: color-mix(in srgb, var(--good) 14%, transparent);
+    border-radius: 999px;
+    padding: 2px 9px;
     margin-bottom: 10px;
   }
-  section h2 {
-    font-size: clamp(1.4rem, 3.4vw, 1.8rem);
-    font-weight: 600;
-    margin: 0 0 14px;
-  }
-  section > p.intro { color: var(--ink-dim); max-width: 640px; margin: 0 0 32px; font-size: 1rem; }
+  .rule h3 { font-size: 16px; margin-bottom: 6px; }
+  .rule p { margin: 0; color: var(--muted); font-size: 15px; }
 
-  /* ---------- pipeline diagram ---------- */
-  .pipeline {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-  }
-  .step {
-    flex: 1 1 130px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 14px;
-    box-shadow: var(--shadow);
-    min-width: 130px;
-  }
-  .step .n { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--teal); font-weight: 600; }
-  .step h3 { font-size: 0.98rem; margin: 6px 0 4px; font-weight: 600; }
-  .step p { margin: 0; font-size: 0.82rem; color: var(--ink-dim); }
-  .arrow {
-    color: var(--border);
-    font-size: 1.3rem;
-    flex: 0 0 auto;
-    display: none;
-  }
-  @media (min-width: 720px) { .arrow { display: block; } }
-
-  /* ---------- rigor cards ---------- */
-  .grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
-  @media (min-width: 640px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: var(--shadow);
-  }
-  .card .glyph { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--amber); font-weight: 600; margin-bottom: 8px; display: block; }
-  .card h3 { font-size: 1rem; margin: 0 0 6px; font-weight: 600; font-family: "Inter", sans-serif; }
-  .card p { margin: 0; font-size: 0.9rem; color: var(--ink-dim); }
-
-  /* ---------- stack ---------- */
-  .stack-group { margin-bottom: 26px; }
-  .stack-group h3 {
-    font-size: 0.8rem;
-    letter-spacing: 0.06em;
+  /* ---------- stack: codemap table ---------- */
+  .table-wrap { overflow-x: auto; }
+  table.codemap { width: 100%; border-collapse: collapse; font-size: 15px; }
+  table.codemap th {
+    text-align: left;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--ink-dim);
-    font-weight: 600;
-    font-family: "Inter", sans-serif;
-    margin: 0 0 12px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 10px 8px 0;
   }
-  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  table.codemap td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.codemap tr:last-child td { border-bottom: none; }
+  table.codemap td.fn { color: var(--accent); white-space: nowrap; font-family: "JetBrains Mono", monospace; font-size: 13px; padding-top: 12px; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
   .pill {
-    font-size: 0.82rem;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: var(--surface-2);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--fg);
+    background: var(--surface-muted);
     border: 1px solid var(--border);
-    color: var(--ink);
+    border-radius: 999px;
+    padding: 3px 10px;
   }
 
-  /* ---------- stats ---------- */
-  .stat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  /* ---------- scale ---------- */
+  .stat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   @media (min-width: 640px) { .stat-row { grid-template-columns: repeat(4, 1fr); } }
-  .stat { text-align: left; }
-  .stat .num { font-family: "Fraunces", serif; font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 600; color: var(--amber); font-variant-numeric: tabular-nums; }
-  .stat .stat-label { font-size: 0.74rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-top: 2px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .stat .num { font-family: "Sora", system-ui, sans-serif; font-size: 28px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .stat .lbl { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); }
 
   /* ---------- status ---------- */
-  .status-box {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    background: var(--teal-soft);
-    border: 1px solid color-mix(in srgb, var(--teal) 30%, transparent);
-    border-radius: 12px;
-    padding: 18px 20px;
+  .status-pill {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    border-radius: 999px;
+    padding: 2px 9px;
+    display: inline-block;
+    white-space: nowrap;
   }
-  .status-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--teal);
-    margin-top: 7px;
-    flex: 0 0 auto;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--teal) 18%, transparent);
-  }
-  .status-box p { margin: 0; font-size: 0.92rem; }
-  .status-box strong { color: var(--teal); }
-
-  .deep-link { margin: 26px 0 0; font-size: 0.95rem; font-weight: 500; }
+  .status-pill.live { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+  .status-pill.next { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+  .status-list { display: grid; gap: 10px; max-width: 68ch; }
+  .status-item { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; }
+  .status-item p { margin: 0; }
 
   footer {
-    padding: 36px 0 calc(40px + var(--safe-bottom));
+    padding-top: 32px;
     border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 14px;
-    font-size: 0.84rem;
-    color: var(--ink-dim);
+    gap: 12px;
   }
-  footer .flinks { display: flex; gap: 18px; flex-wrap: wrap; }
-  footer a { color: var(--ink-dim); }
-  footer a:hover { color: var(--teal); }
+  footer .flinks { display: flex; flex-wrap: wrap; gap: 16px; font-family: "JetBrains Mono", monospace; }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--accent); }
+
+  .theme-toggle {
+    position: fixed;
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    right: 16px;
+    z-index: 20;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 6px 16px rgba(0,0,0,0.08);
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 560px) {
+    header.masthead h1 { font-size: 27px; }
+    section.block h2 { font-size: 21px; }
+  }
 </style>
+<script>
+  /* Dark on a first visit, like the infrastructure page. */
+  (function () {
+    var KEY = "ugo-pipeline-theme";
+    var root = document.documentElement;
+    function apply(t) {
+      if (t === "light" || t === "dark") root.setAttribute("data-theme", t);
+      else root.removeAttribute("data-theme");
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    apply(saved || "dark");
+    window.__ugoThemeApply = apply;
+    window.__ugoThemeKey = KEY;
+  })();
+</script>
 </head>
 <body>
 
-<button class="theme-toggle" id="themeToggle" aria-label="Toggle color theme" title="Toggle color theme">◐</button>
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle light / dark theme" title="Toggle light / dark theme">&#9680;</button>
 
-<div class="wrap">
-
-  <header class="hero">
-    <svg class="mark" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
-      <path d="M32 6 L4 40 L26 34 L20 58 L32 38 L44 58 L38 34 L60 40 Z"/>
-    </svg>
-    <div class="kicker">Ugo &middot; the word means "Eagle" in Igbo language</div>
-    <h1 class="display">Autonomous intelligence,<br><em>one brief a day.</em></h1>
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" fill="currentColor" aria-hidden="true"><path d="M32 6 L4 40 L26 34 L20 58 L32 38 L44 58 L38 34 L60 40 Z"/></svg>
+      <div class="eyebrow">Ugo &middot; the word means "Eagle" in Igbo language</div>
+    </div>
+    <h1>Autonomous intelligence, <span>one brief a day.</span></h1>
     <p class="lede">Ugo reads what the world's newsrooms, filings and data feeds publish every day, turns it into a knowledge graph, and synthesizes a single structured brief of real, sourced opportunities, across more than 50 domains, every morning.</p>
     <div class="cta-row">
-      <a class="btn primary" href="https://app.ugo-intelligence.com">See today's brief →</a>
-      <a class="btn ghost" href="#architecture">How it works</a>
+      <a class="btn primary" href="https://app.ugo-intelligence.com">See today's brief &rarr;</a>
+      <a class="btn" href="#architecture">How it works</a>
+      <a class="btn" href="infrastructure/">Infrastructure reference</a>
     </div>
-  </header>
+    <div class="meta">6,000+ sources &middot; 50+ domains &middot; 7 layers &middot; 1 brief every morning</div>
+  </div>
+</header>
 
-  <section id="architecture">
-    <div class="eyebrow">Architecture</div>
+<nav class="toc" aria-label="Sections">
+  <div class="toc-scroll">
+    <a href="#architecture">Architecture</a>
+    <a href="#rigor">Design principle</a>
+    <a href="#stack">Stack</a>
+    <a href="#scale">Scale</a>
+    <a href="#status">Status</a>
+    <span class="toc-sep" aria-hidden="true"></span>
+    <a class="part" href="infrastructure/">Infrastructure &rarr;</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <section class="block" id="architecture">
+    <div class="section-eyebrow">Architecture</div>
     <h2>Seven layers, one pipeline</h2>
     <p class="intro">Each day's brief moves through seven distinct stages: ingestion, processing, a knowledge graph, a multi-agent reasoning pipeline, scoring, synthesis, and delivery. Nothing skips a stage.</p>
-    <div class="pipeline">
-      <div class="step"><div class="n">01</div><h3>Ingestion</h3><p>6,000+ RSS feeds, APIs and data sources polled continuously</p></div>
-      <div class="arrow">→</div>
-      <div class="step"><div class="n">02</div><h3>Processing</h3><p>Near-duplicate detection, credibility scoring, classification</p></div>
-      <div class="arrow">→</div>
-      <div class="step"><div class="n">03</div><h3>Knowledge</h3><p>Entity extraction and a relation graph: who's connected to what, and how</p></div>
-      <div class="arrow">→</div>
-      <div class="step"><div class="n">04</div><h3>Agents</h3><p>A multi-agent pipeline reasons from trend → problem → opportunity → solution</p></div>
-      <div class="arrow">→</div>
-      <div class="step"><div class="n">05</div><h3>Scoring</h3><p>Opportunities ranked on real, data-driven signals, not a model's gut feel</p></div>
-      <div class="arrow">→</div>
-      <div class="step"><div class="n">06</div><h3>Brief</h3><p>Synthesized into a single, structured daily brief with an AI-ready export</p></div>
-      <div class="arrow">→</div>
-      <div class="step"><div class="n">07</div><h3>Delivery</h3><p>Emailed and served through a web API, every morning</p></div>
-    </div>
-    <p class="deep-link"><a href="infrastructure/">Infrastructure reference: the three-node HA cluster Ugo runs on, phase by phase &rarr;</a></p>
+    <ol class="layers">
+      <li><span class="job-num">01</span><h3>Ingestion <span class="file-tag">ingestion/</span></h3><p>6,000+ RSS feeds, APIs and data sources polled continuously</p></li>
+      <li><span class="job-num">02</span><h3>Processing <span class="file-tag">processing/</span></h3><p>Near-duplicate detection, credibility scoring, classification</p></li>
+      <li><span class="job-num">03</span><h3>Knowledge <span class="file-tag">knowledge/</span></h3><p>Entity extraction and a relation graph: who's connected to what, and how</p></li>
+      <li><span class="job-num">04</span><h3>Agents <span class="file-tag">agents/</span></h3><p>A multi-agent pipeline reasons from trend &rarr; problem &rarr; opportunity &rarr; solution</p></li>
+      <li><span class="job-num">05</span><h3>Scoring <span class="file-tag">scoring/</span></h3><p>Opportunities ranked on real, data-driven signals, not a model's gut feel</p></li>
+      <li><span class="job-num">06</span><h3>Brief <span class="file-tag">brief/</span></h3><p>Synthesized into a single, structured daily brief with an AI-ready export</p></li>
+      <li><span class="job-num">07</span><h3>Delivery <span class="file-tag">delivery/</span></h3><p>Emailed and served through a web API, every morning</p></li>
+    </ol>
+    <p class="note">The three-node HA cluster Ugo runs on, phase by phase: <a href="infrastructure/">infrastructure reference &rarr;</a></p>
   </section>
 
-  <section id="rigor">
-    <div class="eyebrow">Design principle</div>
+  <section class="block" id="rigor">
+    <div class="section-eyebrow">Design principle</div>
     <h2>Built to not make things up</h2>
     <p class="intro">The hardest problem in an AI research tool isn't generating opportunities. It's trusting them. Ugo is built around a small set of hard rules that constrain what the models are allowed to assert.</p>
-    <div class="grid-3">
-      <div class="card">
-        <span class="glyph">&ge;2</span>
+    <div class="rules">
+      <div class="rule">
+        <span class="tag">&ge;2 sources</span>
         <h3>Every claim needs sources</h3>
         <p>No statement in a brief stands on one article. Each one is required to trace back to at least two independent source IDs.</p>
       </div>
-      <div class="card">
-        <span class="glyph">DATA</span>
+      <div class="rule">
+        <span class="tag">data APIs</span>
         <h3>Numbers come from data, not prose</h3>
         <p>Market-size figures are pulled from FRED, the World Bank and Statista, never generated by a language model.</p>
       </div>
-      <div class="card">
-        <span class="glyph">✓✓</span>
+      <div class="rule">
+        <span class="tag">critic agent</span>
         <h3>A critic reviews every output</h3>
         <p>A dedicated critic agent checks each other agent's output before it's allowed into the brief. Nothing ships unreviewed.</p>
       </div>
     </div>
   </section>
 
-  <section id="stack">
-    <div class="eyebrow">Under the hood</div>
+  <section class="block" id="stack">
+    <div class="section-eyebrow">Under the hood</div>
     <h2>The stack</h2>
     <p class="intro">Python throughout the backend, a multi-agent orchestration layer on top of Claude, and the kind of boring, reliable infrastructure that keeps a daily pipeline actually running every day.</p>
-
-    <div class="stack-group">
-      <h3>Backend &amp; data</h3>
-      <div class="pill-row">
-        <span class="pill">Python 3.12</span>
-        <span class="pill">FastAPI</span>
-        <span class="pill">PostgreSQL</span>
-        <span class="pill">Redis</span>
-        <span class="pill">Neo4j</span>
-        <span class="pill">Pinecone</span>
-      </div>
-    </div>
-    <div class="stack-group">
-      <h3>Intelligence</h3>
-      <div class="pill-row">
-        <span class="pill">Claude (Anthropic)</span>
-        <span class="pill">LangGraph multi-agent pipeline</span>
-        <span class="pill">spaCy NER</span>
-        <span class="pill">MinHash near-dup detection</span>
-      </div>
-    </div>
-    <div class="stack-group">
-      <h3>Frontend &amp; delivery</h3>
-      <div class="pill-row">
-        <span class="pill">Next.js</span>
-        <span class="pill">React</span>
-        <span class="pill">Resend</span>
-        <span class="pill">Stripe</span>
-      </div>
-    </div>
-    <div class="stack-group">
-      <h3>Infrastructure</h3>
-      <div class="pill-row">
-        <span class="pill">Self-hosted</span>
-        <span class="pill">Docker</span>
-        <span class="pill">Kubernetes</span>
-        <span class="pill">Cloudflare</span>
-      </div>
+    <div class="table-wrap">
+      <table class="codemap">
+        <thead><tr><th>Area</th><th>Technology</th></tr></thead>
+        <tbody>
+          <tr><td class="fn">backend &amp; data</td><td><div class="pill-row"><span class="pill">Python 3.12</span><span class="pill">FastAPI</span><span class="pill">PostgreSQL</span><span class="pill">Redis</span><span class="pill">Neo4j</span><span class="pill">Pinecone</span></div></td></tr>
+          <tr><td class="fn">intelligence</td><td><div class="pill-row"><span class="pill">Claude (Anthropic)</span><span class="pill">LangGraph multi-agent pipeline</span><span class="pill">spaCy NER</span><span class="pill">MinHash near-dup detection</span></div></td></tr>
+          <tr><td class="fn">frontend &amp; delivery</td><td><div class="pill-row"><span class="pill">Next.js</span><span class="pill">React</span><span class="pill">Resend</span><span class="pill">Stripe</span></div></td></tr>
+          <tr><td class="fn">infrastructure</td><td><div class="pill-row"><span class="pill">Self-hosted</span><span class="pill">Docker</span><span class="pill">Kubernetes</span><span class="pill">Cloudflare</span></div></td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
-  <section id="scale">
-    <div class="eyebrow">At a glance</div>
+  <section class="block" id="scale">
+    <div class="section-eyebrow">At a glance</div>
     <h2>Scale</h2>
     <div class="stat-row">
-      <div class="stat"><div class="num">6,000+</div><span class="stat-label">sources ingested daily</span></div>
-      <div class="stat"><div class="num">50+</div><span class="stat-label">domains covered</span></div>
-      <div class="stat"><div class="num">7</div><span class="stat-label">pipeline layers</span></div>
-      <div class="stat"><div class="num">1</div><span class="stat-label">brief, every morning</span></div>
+      <div class="stat"><div class="num">6,000+</div><div class="lbl">sources ingested daily</div></div>
+      <div class="stat"><div class="num">50+</div><div class="lbl">domains covered</div></div>
+      <div class="stat"><div class="num">7</div><div class="lbl">pipeline layers</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">brief, every morning</div></div>
     </div>
   </section>
 
-  <section id="status">
-    <div class="eyebrow">Status</div>
+  <section class="block" id="status">
+    <div class="section-eyebrow">Status</div>
     <h2>Where things stand</h2>
-    <div class="status-box">
-      <div class="status-dot"></div>
-      <p><strong>Live and running.</strong> The full pipeline executes daily, end to end: ingestion through delivery. Infrastructure work is underway to move from a single self-hosted machine to a high-availability cluster, without changing anything about how the brief itself is built.</p>
+    <div class="status-list">
+      <div class="status-item"><span class="status-pill live">live</span><p>The full pipeline executes daily, end to end: ingestion through delivery.</p></div>
+      <div class="status-item"><span class="status-pill next">in progress</span><p>Infrastructure work is underway to move from a single self-hosted machine to a high-availability cluster, without changing anything about how the brief itself is built. <a href="infrastructure/">Progress, phase by phase &rarr;</a></p></div>
     </div>
   </section>
 
@@ -405,33 +462,19 @@
     </div>
   </footer>
 
-</div>
+</main>
 
 <script>
 (function () {
-  var KEY = "ugo-theme";
-  var root = document.documentElement;
   var btn = document.getElementById("themeToggle");
-
-  function apply(theme) {
-    if (theme === "light" || theme === "dark") {
-      root.setAttribute("data-theme", theme);
-    } else {
-      root.removeAttribute("data-theme");
-    }
-  }
-
-  var saved = null;
-  try { saved = localStorage.getItem(KEY); } catch (e) {}
-  apply(saved);
-
+  var root = document.documentElement;
   btn.addEventListener("click", function () {
     var current = root.getAttribute("data-theme");
     var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     var effectiveDark = current ? current === "dark" : prefersDark;
     var next = effectiveDark ? "light" : "dark";
-    apply(next);
-    try { localStorage.setItem(KEY, next); } catch (e) {}
+    window.__ugoThemeApply(next);
+    try { localStorage.setItem(window.__ugoThemeKey, next); } catch (e) {}
   });
 })();
 </script>
