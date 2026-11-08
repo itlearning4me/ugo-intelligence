@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6 L4 40 L26 34 L20 58 L32 38 L44 58 L38 34 L60 40 Z' fill='%23d9a441'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ugo HA Cluster Reference</title>
+<meta name="description" content="Phase-by-phase reference for the Ugo HA cluster: architecture, node layout, network and runbook Phases 1–11.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Same layout as the Ugo Pipeline Reference: sticky pill nav + one sequential column.
+     Numbered badges are runbook phases — the order they must run in. */
+  :root {
+    --bg: #f7f8fb;
+    --surface: #ffffff;
+    --surface-muted: #eef0f6;
+    --fg: #1a1d29;
+    --muted: #5b6178;
+    --accent: #4338ca;
+    --accent-soft: #e8e6fb;
+    --border: #dde1ea;
+    --good: #0a7a4d;
+    --warn: #9a5b00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11131c; --surface: #171a26; --surface-muted: #1f2333; --fg: #e8e9f1;
+      --muted: #9196ad; --accent: #a5b0fc; --accent-soft: #272b47; --border: #2a2e42;
+      --good: #4fd999; --warn: #f0b94d; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #11131c; --surface: #171a26; --surface-muted: #1f2333; --fg: #e8e9f1;
+    --muted: #9196ad; --accent: #a5b0fc; --accent-soft: #272b47; --border: #2a2e42;
+    --good: #4fd999; --warn: #f0b94d; color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: "Source Sans 3", system-ui, sans-serif;
+    font-size: 16px; line-height: 1.6; margin: 0;
+    padding-inline: 20px; padding-block: 0 48px;
+  }
+  h1, h2, h3 { font-family: "Sora", system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  h3 { font-size: 16px; margin: 22px 0 8px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code, .mono { font-family: "JetBrains Mono", monospace; font-size: 0.88em; }
+
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  header.masthead { padding-block: 36px 24px; border-bottom: 1px solid var(--border); }
+  header.masthead .eyebrow {
+    font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  }
+  header.masthead h1 { font-size: 30px; font-weight: 700; margin-bottom: 10px; }
+  header.masthead p.lede { color: var(--muted); font-size: 16px; max-width: 65ch; margin: 0; }
+  header.masthead .meta { margin-top: 16px; font-size: 13px; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+
+  .progress { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; margin-top: 18px; max-width: 520px; }
+  .progress span { height: 6px; border-radius: 3px; background: var(--surface-muted); border: 1px solid var(--border); }
+  .progress span.done { background: var(--good); border-color: var(--good); }
+  .progress span.next { background: var(--warn); border-color: var(--warn); }
+  .progress-label { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  nav.toc {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding-block: 10px; margin-bottom: 8px;
+  }
+  nav.toc .toc-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; max-width: 860px; margin: 0 auto; }
+  nav.toc .toc-scroll::-webkit-scrollbar { display: none; }
+  nav.toc a {
+    flex: 0 0 auto; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted);
+    background: var(--surface-muted); border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 12px; white-space: nowrap;
+  }
+  nav.toc a:hover { color: var(--accent); text-decoration: none; border-color: var(--accent); }
+
+  section.block { padding-block: 40px; border-bottom: 1px solid var(--border); scroll-margin-top: 56px; }
+  section.block:last-of-type { border-bottom: none; }
+
+  .job-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
+  .job-num {
+    font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 500; color: var(--accent);
+    background: var(--accent-soft); border-radius: 6px; padding: 3px 8px; flex: 0 0 auto;
+  }
+  .job-head h2 { font-size: 22px; }
+  .schedule-badge {
+    font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; white-space: nowrap;
+  }
+
+  .file-tag {
+    display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent);
+    background: var(--accent-soft); border-radius: 5px; padding: 2px 8px; margin: 0 6px 14px 0;
+  }
+
+  p.purpose { color: var(--fg); margin: 10px 0 18px; max-width: 68ch; }
+
+  ol.steps { margin: 0 0 22px; padding-left: 0; list-style: none; counter-reset: step; }
+  ol.steps > li { counter-increment: step; position: relative; padding-left: 34px; margin-bottom: 12px; max-width: 68ch; }
+  ol.steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: 0.05em; width: 22px; height: 22px;
+    border-radius: 50%; background: var(--surface-muted); border: 1px solid var(--border); color: var(--muted);
+    font-family: "JetBrains Mono", monospace; font-size: 12px; display: flex; align-items: center; justify-content: center;
+  }
+
+  .diagram-label {
+    font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--muted); margin: 22px 0 8px;
+  }
+  .diagram-wrap {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin-bottom: 20px;
+  }
+  pre.mermaid { margin: 0; min-width: 480px; font-size: 13px; color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; }
+  table.codemap { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
+  table.codemap th {
+    text-align: left; font-family: "JetBrains Mono", monospace; font-size: 11.5px; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); padding: 6px 10px 8px 0;
+  }
+  table.codemap td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.codemap tr:last-child td { border-bottom: none; }
+  table.codemap td.fn { color: var(--accent); white-space: nowrap; }
+  table.codemap td.num { font-variant-numeric: tabular-nums; }
+
+  .note {
+    background: var(--surface-muted); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 10px 14px; font-size: 14.5px; color: var(--muted); max-width: 68ch; margin: 4px 0 18px;
+  }
+  .note.warn { border-left-color: var(--warn); }
+
+  .status-pill { font-family: "JetBrains Mono", monospace; font-size: 12px; border-radius: 999px; padding: 2px 9px; display: inline-block; white-space: nowrap; }
+  .status-pill.done { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+  .status-pill.next { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+  .status-pill.repo { color: var(--accent); background: var(--accent-soft); }
+
+  .masked { font-family: "JetBrains Mono", monospace; font-size: 0.85em; color: var(--muted); letter-spacing: 0.04em; }
+
+  footer { padding-top: 32px; font-size: 13px; color: var(--muted); }
+
+  .theme-toggle {
+    position: fixed; top: calc(14px + env(safe-area-inset-top, 0px)); right: 16px; z-index: 20;
+    width: 34px; height: 34px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 6px 16px rgba(0,0,0,0.08);
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  @media (max-width: 560px) {
+    header.masthead h1 { font-size: 24px; }
+    .job-head h2 { font-size: 19px; }
+    pre.mermaid { min-width: 380px; }
+  }
+</style>
+<script>
+  /* Dark by default on a first visit, like the Pipeline Reference; the toggle persists a choice. */
+  (function () {
+    var KEY = "ugo-ha-ref-theme";
+    var root = document.documentElement;
+    function apply(t) {
+      if (t === "light" || t === "dark") root.setAttribute("data-theme", t);
+      else root.removeAttribute("data-theme");
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    apply(saved || "dark");
+    window.__ugoThemeApply = apply;
+    window.__ugoThemeKey = KEY;
+  })();
+</script>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle light / dark theme" title="Toggle light / dark theme">&#9680;</button>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow"><a href="../">&larr; About Ugo Intelligence</a> &middot; infrastructure reference</div>
+    <h1>Ugo HA Cluster Reference</h1>
+    <p class="lede">How Ugo moves from one Raspberry Pi to a three-node Proxmox and Kubernetes
+      platform that keeps running when any one machine fails, phase by phase, in the order the
+      runbook runs them.</p>
+    <div class="progress" aria-label="Runbook progress: phases 1 to 5 done, phase 6 next, phases 7 to 11 in repo">
+      <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span>
+      <span class="next"></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="progress-label">Phases 1–5 done on hardware &middot; 6 next &middot; 7–11 written, in repo</div>
+    <div class="meta">Runbook Phases 1–11 &middot; status as of 2026-11-04 &middot; private addresses masked</div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <div class="toc-scroll">
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#nodes">Node layout</a>
+    <a href="#network">Network</a>
+    <a href="#phase-1">01 BIOS</a>
+    <a href="#phase-2">02 Proxmox</a>
+    <a href="#phase-3">03 Cluster</a>
+    <a href="#phase-4">04 VMs</a>
+    <a href="#phase-5">05 k3s</a>
+    <a href="#phase-6">06 Platform</a>
+    <a href="#phase-7">07 App changes</a>
+    <a href="#phase-8">08 Manifests</a>
+    <a href="#phase-9">09 CI/CD</a>
+    <a href="#phase-10">10 Migration</a>
+    <a href="#phase-11">11 Day-2</a>
+    <a href="#open">Open items</a>
+    <a href="#filemap">File map</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ─────────── Overview ─────────── -->
+  <section class="block" id="overview">
+    <h2 style="font-size:22px;margin-bottom:10px;">What the cluster is for</h2>
+    <p class="purpose">
+      Today Ugo runs on one Raspberry Pi 5 under docker-compose, with every scheduled job in one
+      process, so one failure takes it offline. The target is three Dell OptiPlex 7050 Micro
+      nodes running a Proxmox cluster, one Ubuntu VM per node, and those three VMs forming one
+      k3s cluster. The design rule behind every phase: <b>every stateful piece (etcd, Postgres,
+      Redis, Longhorn) keeps exactly one member per physical node.</b> Lose any one machine and
+      the other two keep quorum and keep serving, with about a minute of disruption and no data
+      loss.
+    </p>
+    <div class="diagram-label">The eleven phases</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart LR
+    subgraph Done["Done on hardware"]
+      P1[01 BIOS] --> P2[02 Proxmox install] --> P3[03 Proxmox cluster] --> P4[04 VMs] --> P5[05 k3s + kube-vip]
+    end
+    P5 --> P6[06 Platform services]
+    subgraph Repo["Written, in repo"]
+      P7[07 App changes] --> P8[08 K8s manifests] --> P9[09 CI/CD] --> P10[10 Migration] --> P11[11 Backups + day-2]
+    end
+    P6 --> P7
+</pre>
+    </div>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Target</th><th>Value</th></tr>
+      <tr><td>Physical nodes</td><td>3 &times; OptiPlex 7050 Micro, 32 GB RAM, 512 GB NVMe</td></tr>
+      <tr><td>Data lost on a node failure</td><td>0</td></tr>
+      <tr><td>Disruption while replicas take over</td><td>about 1 minute</td></tr>
+      <tr><td>Members of each stateful service per node</td><td>1</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ─────────── Architecture ─────────── -->
+  <section class="block" id="architecture">
+    <div class="job-head">
+      <h2>Architecture: how requests, data and deploys flow</h2>
+    </div>
+    <p class="purpose">
+      Nothing is exposed to the internet directly. Requests come in through Cloudflare Tunnel,
+      backups go out to Cloudflare R2, and images are built in GitHub Actions and pulled from GHCR.
+      Deploys reach the cluster only through a self-hosted runner on the LAN.
+    </p>
+    <div class="diagram-label">System architecture</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart LR
+    U[Users and webhooks] --> CF[Cloudflare<br/>DNS + TLS]
+    CF --> T
+    subgraph K3S["k3s cluster &middot; 3 nodes"]
+      T[cloudflared &times;2] --> APP[API &times;3 + web &times;3]
+      CJ[CronJobs &times;5<br/>Redis-locked]
+      APP --> PG[(Postgres 18<br/>CNPG &times;3)]
+      APP --> RD[(Redis<br/>3 + 3 Sentinel)]
+      APP --> NEO[(Neo4j)]
+      CJ --> PG
+      CJ --> RD
+      CJ --> NEO
+      VIP[k3s API<br/>kube-vip VIP]
+    end
+    APP --> EXT[External APIs<br/>Anthropic, OpenAI, Pinecone,<br/>Stripe, Resend]
+    CJ --> EXT
+    CI[GitHub Actions] --> GHCR[GHCR images]
+    CI --> RUN[ugo-lan runner] --> VIP
+    PG -. WAL + base backups .-> R2[(Cloudflare R2)]
+    NEO -. Longhorn backup .-> R2
+    VIP -. etcd snapshots .-> R2
+</pre>
+    </div>
+    <div class="diagram-label">Six layers, hardware to edge</div>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Layer</th><th>What runs there</th></tr>
+      <tr><td>Edge &amp; cloud</td><td>Cloudflare Tunnel &times;2, Cloudflare R2 backups, GitHub Actions, GHCR images</td></tr>
+      <tr><td>Application</td><td>API &times;3, web &times;3, 5 CronJobs, migrate Job, Neo4j, NetworkPolicy</td></tr>
+      <tr><td>Platform</td><td>MetalLB, Longhorn, cert-manager, Postgres 18 &times;3, Redis + Sentinel, Prometheus</td></tr>
+      <tr><td>Kubernetes</td><td>k3s v1.36.5, 3 servers, embedded etcd &times;3, kube-vip API address, secrets encrypted</td></tr>
+      <tr><td>Virtualisation</td><td>Proxmox VE 9.2 cluster <code>ugo-pve</code>; Ubuntu 24.04 VMs k8s-1, k8s-2, k8s-3</td></tr>
+      <tr><td>Hardware</td><td>3 &times; OptiPlex 7050 Micro, 1 GbE LAN + 2.5 GbE cluster link</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ─────────── Node layout ─────────── -->
+  <section class="block" id="nodes">
+    <div class="job-head"><h2>Node layout: one member of everything on every node</h2></div>
+    <p class="purpose">
+      Any two nodes form a majority, so etcd, Postgres and Redis Sentinel keep quorum with one node
+      down. Cloudflared runs two replicas, so one node has none. With a node down, the third API and
+      web pod stay pending until it returns; two carry the load.
+    </p>
+    <div class="diagram-label">Physical placement</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart TB
+    subgraph N1["pve1"]
+      V1["VM k8s-1 &middot; 4 vCPU &middot; 12 GB"]
+      A1["k3s server + etcd<br/>Postgres &middot; Redis + Sentinel<br/>Longhorn replica<br/>API, web, tunnel"]
+      V1 --- A1
+    end
+    subgraph N2["pve2"]
+      V2["VM k8s-2 &middot; 4 vCPU &middot; 12 GB"]
+      A2["k3s server + etcd<br/>Postgres &middot; Redis + Sentinel<br/>Longhorn replica<br/>API, web, tunnel"]
+      V2 --- A2
+    end
+    subgraph N3["pve3"]
+      V3["VM k8s-3 &middot; 4 vCPU &middot; 12 GB"]
+      A3["k3s server + etcd<br/>Postgres &middot; Redis + Sentinel<br/>Longhorn replica<br/>API, web"]
+      V3 --- A3
+    end
+    N1 <-.->|corosync: 2.5 GbE preferred, LAN fallback| N2
+    N2 <-.-> N3
+</pre>
+    </div>
+    <div class="note">
+      Postgres and Redis replicate themselves, so their Longhorn volumes use a single strict-local
+      replica. Everything else gets three replicas, each on a different physical node.
+    </div>
+  </section>
+
+  <!-- ─────────── Network ─────────── -->
+  <section class="block" id="network">
+    <div class="job-head"><h2>Network: two networks, fixed addresses</h2></div>
+    <p class="purpose">
+      Every address is static and reserved outside DHCP. Actual addresses are masked on this page;
+      they live in the private runbook and in <code>infra/cluster/hosts/</code>.
+    </p>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Name</th><th>Address</th><th>Role</th></tr>
+      <tr><td class="mono">pve1 / pve2 / pve3</td><td class="masked">static &middot; LAN</td><td>Proxmox hosts</td></tr>
+      <tr><td class="mono">k8s-1 / k8s-2 / k8s-3</td><td class="masked">static &middot; LAN</td><td>k3s server VMs</td></tr>
+      <tr><td class="mono">k8s-api</td><td class="masked">floating VIP &middot; LAN</td><td>kube-vip API address</td></tr>
+      <tr><td class="mono">MetalLB pool</td><td class="masked">21-address range &middot; LAN</td><td>LAN load balancers</td></tr>
+      <tr><td class="mono">Cluster link</td><td class="masked">isolated subnet</td><td>Corosync, Proxmox hosts only</td></tr>
+      <tr><td class="mono">Gateway / DNS</td><td class="masked">static &middot; LAN</td><td>Router</td></tr>
+    </table>
+    </div>
+    <div class="diagram-label">Bridges</div>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Bridge</th><th>Link</th><th>Carries</th></tr>
+      <tr><td class="fn mono">vmbr0</td><td>1 GbE onboard Intel</td><td>Management LAN, VM and pod traffic. NIC offloads off.</td></tr>
+      <tr><td class="fn mono">vmbr1</td><td>2.5 GbE USB adapter</td><td>Dedicated corosync link, no gateway</td></tr>
+    </table>
+    </div>
+    <div class="note">
+      The VIP and VMs moved to a new range after a network scan found other devices on the
+      original one. The k3s VMs have one NIC on the LAN, so Longhorn replication shares the pod
+      network; only the Proxmox hosts use the 2.5 GbE link.
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 1 ─────────── -->
+  <section class="block" id="phase-1">
+    <div class="job-head">
+      <span class="job-num">01</span><h2>BIOS</h2>
+      <span class="status-pill done">done &middot; 21 Oct</span>
+    </div>
+    <p class="purpose">Makes the three machines behave identically and boot without a keyboard or monitor.</p>
+    <ol class="steps">
+      <li>UEFI only, SATA mode AHCI.</li>
+      <li>VT-x and VT-d on, for virtualisation and device passthrough.</li>
+      <li>Wi-Fi and Bluetooth off.</li>
+      <li>Power on after power loss, so a node returns by itself after an outage.</li>
+      <li>Boots headless.</li>
+    </ol>
+  </section>
+
+  <!-- ─────────── Phase 2 ─────────── -->
+  <section class="block" id="phase-2">
+    <div class="job-head">
+      <span class="job-num">02</span><h2>Proxmox VE install</h2>
+      <span class="status-pill done">done &middot; 21 Oct</span>
+    </div>
+    <p class="purpose">Installs Proxmox VE 9.2 on each node and fixes the Intel I219 NIC hang that would otherwise drop a node out of the cluster.</p>
+    <ol class="steps">
+      <li>Install to NVMe with ext4 + LVM-thin.</li>
+      <li>Switch to the no-subscription repository; install CPU microcode.</li>
+      <li>Turn NIC offloads off on the onboard Intel NIC (the hang fix).</li>
+      <li>Create <code>vmbr0</code> on the LAN and <code>vmbr1</code> on the 2.5 GbE adapter.</li>
+      <li>Enable chrony time sync, which corosync and etcd depend on.</li>
+    </ol>
+  </section>
+
+  <!-- ─────────── Phase 3 ─────────── -->
+  <section class="block" id="phase-3">
+    <div class="job-head">
+      <span class="job-num">03</span><h2>Proxmox cluster</h2>
+      <span class="status-pill done">done &middot; 26 Oct</span>
+    </div>
+    <span class="file-tag">infra/cluster/03-proxmox-cluster.sh</span><span class="file-tag">infra/cluster/hosts/</span>
+    <p class="purpose">Forms the three hosts into the cluster <code>ugo-pve</code>, with corosync on two links.</p>
+    <ol class="steps">
+      <li><code>pvecm create</code> on pve1, <code>pvecm add</code> on pve2 and pve3.</li>
+      <li>Confirm 3 of 3 votes and <code>Quorate: Yes</code>.</li>
+      <li>Set link priorities: link 1 (2.5 GbE) at 20, link 0 (LAN) at 10.</li>
+      <li>Test failover both ways by unplugging each link.</li>
+      <li>Back up host config (interfaces, hosts, corosync.conf) to Git.</li>
+    </ol>
+    <div class="diagram-label">Corosync link selection</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart LR
+    A[Corosync heartbeat] --> B{2.5 GbE link up?}
+    B -->|Yes, priority 20| C[Link 1: dedicated cluster link]
+    B -->|No| D[Link 0: LAN, priority 10]
+    C --> E[Quorum held]
+    D --> E
+</pre>
+    </div>
+    <div class="note warn">
+      Found on the live cluster: corosync was first using the shared LAN. Setting link priorities
+      fixed it with no loss of quorum. After the fix the 2.5 GbE link carries 800 packets per 10 s
+      against 88 on the LAN.
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 4 ─────────── -->
+  <section class="block" id="phase-4">
+    <div class="job-head">
+      <span class="job-num">04</span><h2>VM template and VMs</h2>
+      <span class="status-pill done">done &middot; 27 Oct</span>
+    </div>
+    <span class="file-tag">infra/cluster/04-vm-template.sh</span><span class="file-tag">infra/cluster/04-clone-and-prep-vm.sh</span>
+    <p class="purpose">Gives each node one right-sized Ubuntu VM, cloned from a per-node template, with a second disk dedicated to Longhorn.</p>
+    <ol class="steps">
+      <li>Download the Ubuntu 24.04 cloud image and build a template on each node.</li>
+      <li>Clone VMs 101–103 and set networking and the Longhorn disk.</li>
+      <li>Install qemu-guest-agent, blacklist Longhorn devices from multipath.</li>
+      <li>Format and mount the Longhorn disk (ext4). Proxmox does not back it up.</li>
+    </ol>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Setting</th><th>Value</th></tr>
+      <tr><td>Image</td><td>Ubuntu 24.04 cloud-init</td></tr>
+      <tr><td>CPU / RAM</td><td class="num">4 vCPU / 12 GB</td></tr>
+      <tr><td>OS disk</td><td class="num">40 GB</td></tr>
+      <tr><td>Longhorn disk</td><td class="num">40 GB, ext4</td></tr>
+      <tr><td>VM IDs</td><td class="num">101–103</td></tr>
+    </table>
+    </div>
+    <div class="note">
+      Sized to measured load (database 239 MB, brief peak 1.74 GB). That frees about 17 GB RAM and
+      230 GB disk per node for other workloads.
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 5 ─────────── -->
+  <section class="block" id="phase-5">
+    <div class="job-head">
+      <span class="job-num">05</span><h2>k3s and kube-vip</h2>
+      <span class="status-pill done">done &middot; 1 Nov</span>
+    </div>
+    <span class="file-tag">infra/cluster/05-bootstrap-k3s.sh</span>
+    <p class="purpose">Builds an HA control plane: three k3s servers with embedded etcd behind one floating API address.</p>
+    <ol class="steps">
+      <li>Write each node's <code>/etc/rancher/k3s/config.yaml</code>: cluster-init on k8s-1, join on the others, zone labels pve1–pve3.</li>
+      <li>Install k3s v1.36.5+k3s1 with secrets encryption on.</li>
+      <li>Install kube-vip v1.3.1 on k8s-1 and confirm the VIP answers.</li>
+      <li>Join k8s-2 and k8s-3 through the VIP.</li>
+      <li>Schedule etcd snapshots every 6 h to R2; verify the upload.</li>
+      <li>Test VIP failover from k8s-1 to k8s-3.</li>
+    </ol>
+    <div class="diagram-label">Bootstrap order</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart LR
+    A[k8s-1: cluster-init] --> B[kube-vip up]
+    B --> C{VIP answers?}
+    C -->|Yes| D[k8s-2 joins via VIP]
+    D --> E[k8s-3 joins via VIP]
+    E --> F[3 etcd members, quorate]
+    C -->|No| G[Stop and fix before joining]
+</pre>
+    </div>
+    <div class="note">
+      Kubelet reserves 512 MiB each for Kubernetes and the system, and evicts below 300 MiB free.
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 6 ─────────── -->
+  <section class="block" id="phase-6">
+    <div class="job-head">
+      <span class="job-num">06</span><h2>Platform services</h2>
+      <span class="status-pill next">next to run</span>
+    </div>
+    <span class="file-tag">infra/cluster/06-install-platform.sh</span><span class="file-tag">infra/k8s/platform/</span>
+    <p class="purpose">Installs six services in a fixed order: networking and storage first, so the databases have IPs and volumes to land on. The script prints each check to run before moving on.</p>
+    <div class="diagram-label">Install order</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart LR
+    A[MetalLB] --> B[Longhorn] --> C[cert-manager] --> D[CNPG operator] --> E[(Postgres cluster)] --> F[Redis operator] --> G[(Redis + Sentinel)] --> H[kube-prometheus]
+</pre>
+    </div>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Service</th><th>Manifest</th><th>Configuration</th></tr>
+      <tr><td>MetalLB</td><td class="mono">metallb-pool.yaml</td><td>LAN load-balancer IPs from a reserved range</td></tr>
+      <tr><td>Longhorn</td><td class="mono">sc-longhorn-local.yaml</td><td>Replicas on different nodes; Neo4j backed up to R2 daily at 03:00</td></tr>
+      <tr><td>cert-manager</td><td class="mono">Helm</td><td>TLS certificates for in-cluster services</td></tr>
+      <tr><td>CloudNativePG</td><td class="mono">postgres.yaml</td><td>Postgres 18, 3 instances of 12 Gi, automatic failover</td></tr>
+      <tr><td>Redis + Sentinel</td><td class="mono">redis.yaml</td><td>3 Redis + 3 Sentinel, 1 Gi each, master <code>mymaster</code></td></tr>
+      <tr><td>kube-prometheus</td><td class="mono">monitoring-values.yaml</td><td>5 Gi, 7 days of metrics, alerts by email via Resend</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 7 ─────────── -->
+  <section class="block" id="phase-7">
+    <div class="job-head">
+      <span class="job-num">07</span><h2>App changes and images</h2>
+      <span class="status-pill repo">in repo</span>
+    </div>
+    <span class="file-tag">api/main.py</span><span class="file-tag">infra/redis_client.py</span><span class="file-tag">infra/jobs.py</span>
+    <p class="purpose">Makes the app safe to run as three copies.</p>
+    <ol class="steps">
+      <li>Split health checks into <code>/healthz</code> (liveness) and <code>/readyz</code> (DB + Redis).</li>
+      <li>Redis client speaks Sentinel when a sentinel host is configured; local dev is unchanged.</li>
+      <li>Read the real client IP from <code>CF-Connecting-IP</code> for rate limiting.</li>
+      <li>Deduplicate Stripe and Resend webhook events in a <code>processed_events</code> table.</li>
+      <li>Replace the APScheduler process with five CronJobs that take a Redis lock.</li>
+      <li>Build non-root, multi-arch images.</li>
+    </ol>
+    <div class="note">
+      Without the lock, three API replicas would run every scheduled job three times.
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 8 ─────────── -->
+  <section class="block" id="phase-8">
+    <div class="job-head">
+      <span class="job-num">08</span><h2>Kubernetes manifests</h2>
+      <span class="status-pill repo">in repo</span>
+    </div>
+    <span class="file-tag">infra/k8s/app/</span>
+    <p class="purpose">One <code>kubectl apply -k</code> surface for the whole app. This is the first time the app faces the internet.</p>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Workload</th><th>Copies</th><th>Note</th></tr>
+      <tr><td class="fn mono">ugo-api</td><td class="num">3</td><td>Disruption budget, probes on /healthz and /readyz</td></tr>
+      <tr><td class="fn mono">ugo-web</td><td class="num">3</td><td>One per node</td></tr>
+      <tr><td class="fn mono">cloudflared</td><td class="num">2</td><td>No open ports at home</td></tr>
+      <tr><td class="fn mono">CronJobs</td><td class="num">5</td><td>Shipped with <code>suspend: true</code> until cutover</td></tr>
+      <tr><td class="fn mono">migrate Job</td><td class="num">1</td><td>Runs before each rollout</td></tr>
+      <tr><td class="fn mono">Neo4j</td><td class="num">1</td><td>5 Gi, backed up</td></tr>
+      <tr><td class="fn mono">NetworkPolicy</td><td>–</td><td>Default deny</td></tr>
+    </table>
+    </div>
+    <div class="note warn">
+      Gate before Phase 8: Proxmox TOTP and a personal admin user. Rolling updates use
+      <code>maxSurge: 0</code>; with three nodes and one pod per node, a surge pod would have nowhere to go.
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 9 ─────────── -->
+  <section class="block" id="phase-9">
+    <div class="job-head">
+      <span class="job-num">09</span><h2>CI/CD pipeline</h2>
+      <span class="status-pill repo">in repo</span>
+    </div>
+    <span class="file-tag">.github/workflows/ci.yml</span>
+    <p class="purpose">Every push to <code>main</code> ships, or rolls back. Pull requests stop after Test.</p>
+    <div class="diagram-label">Workflow</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart LR
+    A[Test<br/>pytest, lint, frontend build] --> B[Images<br/>amd64 + arm64 to GHCR]
+    B --> G{{Reviewer approval<br/>production env}}
+    G --> C[Deploy<br/>migrate Job, apply manifests]
+    C --> D[Smoke test<br/>Playwright on public URL]
+    D -->|Pass| E[Done]
+    D -->|Fail| F[Rollback]
+</pre>
+    </div>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Job</th><th>Runs on</th><th>Why there</th></tr>
+      <tr><td class="fn mono">test</td><td>GitHub-hosted</td><td>No cluster access needed</td></tr>
+      <tr><td class="fn mono">images</td><td>GitHub-hosted</td><td>npm packages never run where cluster credentials live</td></tr>
+      <tr><td class="fn mono">deploy</td><td>ugo-lan runner</td><td>Only the LAN can reach the cluster API</td></tr>
+      <tr><td class="fn mono">smoke</td><td>GitHub-hosted</td><td>Needs only the public URL</td></tr>
+      <tr><td class="fn mono">rollback</td><td>ugo-lan runner</td><td>Only if the smoke test fails</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 10 ─────────── -->
+  <section class="block" id="phase-10">
+    <div class="job-head">
+      <span class="job-num">10</span><h2>Migration and cutover</h2>
+      <span class="status-pill repo">in repo</span>
+      <span class="schedule-badge">~30 min window</span>
+    </div>
+    <span class="file-tag">infra/migration/</span>
+    <p class="purpose">Rehearse once, then cut over from the Pi in about 30 minutes, clear of the 04:00 UTC brief. Postgres is 18 on both sides, so this is a same-version dump and restore.</p>
+    <div class="diagram-label">Workflow</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart TD
+    R[Rehearsal, days before:<br/>dump, restore, migrate,<br/>Playwright, compare counts, wipe] --> S[Stop writes on the Pi]
+    S --> P[Rotate the Pi's passwords]
+    P --> D[Final dump, restore, migrate]
+    D --> C{Row counts match?}
+    C -->|Yes| U[Scale to 3, move hostnames,<br/>unpause CronJobs via git]
+    C -->|No| B[Rollback: scale app to 0,<br/>hostnames back, start Pi]
+    U --> W{Healthy in first hour?}
+    W -->|No| B
+    W -->|Yes| K[Keep Pi intact 14 days]
+</pre>
+    </div>
+    <div class="note">
+      Redis is not migrated; people sign in again with a magic link. CronJobs are switched on by a
+      git commit, not <code>kubectl patch</code>, because CI re-applies manifests on every push.
+    </div>
+  </section>
+
+  <!-- ─────────── Phase 11 ─────────── -->
+  <section class="block" id="phase-11">
+    <div class="job-head">
+      <span class="job-num">11</span><h2>Backups and day-2 operations</h2>
+      <span class="status-pill repo">in repo</span>
+    </div>
+    <span class="file-tag">infra/cluster/11-restore-drill.sh</span><span class="file-tag">infra/cluster/11-monthly-maintenance.sh</span>
+    <p class="purpose">Off-site backups inside R2's 10 GB free tier, which lasts about three years at today's 239 MB, then deliberate failure tests before go-live.</p>
+    <div class="diagram-label">Backups</div>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>What</th><th>How</th><th>Kept</th><th>Where</th></tr>
+      <tr><td>Postgres</td><td>WAL + weekly base, gzip</td><td>14 days, point in time</td><td>Cloudflare R2</td></tr>
+      <tr><td>Cluster state</td><td>etcd snapshot every 6 h</td><td>10 per server</td><td>VM disk + R2</td></tr>
+      <tr><td>Neo4j volume</td><td>Longhorn job at 03:00</td><td>7 daily</td><td>Cloudflare R2</td></tr>
+      <tr><td>Host config</td><td>interfaces, hosts, corosync</td><td>Every change</td><td>Git</td></tr>
+      <tr><td>k3s token, secrets</td><td>Stored by hand</td><td>Current</td><td>Password manager</td></tr>
+      <tr><td>VMs, Redis, metrics</td><td>Not backed up</td><td>–</td><td>Rebuilt, not restored</td></tr>
+    </table>
+    </div>
+    <div class="diagram-label">Failure tests</div>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Test</th><th>How</th><th>Expected result</th></tr>
+      <tr><td>Pod crash</td><td>Delete one API pod</td><td>Replaced in seconds, no failed requests</td></tr>
+      <tr><td>Maintenance</td><td>Drain k8s-2</td><td>Two API and two web pods keep serving</td></tr>
+      <tr><td>Node loss</td><td>Pull the power on pve3</td><td>Serving again in 30–60 s; replicas promoted</td></tr>
+      <tr><td>Node returns</td><td>Power pve3 back on</td><td>Rejoins k3s; Longhorn rebuilds replicas</td></tr>
+      <tr><td>Network loss</td><td>Unplug one node, 2 min</td><td>No split brain: the isolated node loses quorum</td></tr>
+      <tr><td>DB switchover</td><td>Promote ugo-db-2</td><td>API reconnects within seconds</td></tr>
+      <tr><td>Restore drill</td><td>Recover Postgres from R2</td><td>Row counts match production</td></tr>
+    </table>
+    </div>
+    <div class="diagram-label">Monthly maintenance, one node at a time</div>
+    <div class="diagram-wrap">
+<pre class="mermaid">
+flowchart LR
+    A[Drain node] --> B[Patch + reboot] --> C[Uncordon] --> D{Longhorn and<br/>Postgres healthy?}
+    D -->|Yes| E[Next node]
+    D -->|No| F[Stop and investigate]
+</pre>
+    </div>
+    <div class="note warn">
+      The k3s server token matters: with secrets encryption on, an etcd snapshot cannot be restored
+      without it. VMs are not backed up because an old image would bring back stale etcd data; a
+      failed node is rebuilt from the Phase 4 and 5 scripts.
+    </div>
+  </section>
+
+  <!-- ─────────── Open items ─────────── -->
+  <section class="block" id="open">
+    <h2 style="font-size:22px;margin-bottom:16px;">Open items before go-live</h2>
+    <p class="purpose">None of these can be done from the repo; each is a manual step on the Pi, in Proxmox or in GitHub.</p>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>When</th><th>What</th></tr>
+      <tr><td><span class="status-pill next">now</span></td><td>Restart <code>ugo-scheduler</code> on the Pi to keep relation batches</td></tr>
+      <tr><td><span class="status-pill repo">any time</span></td><td>Proxmox email notifications for fencing and replication</td></tr>
+      <tr><td><span class="status-pill next">before Phase 8</span></td><td>TOTP for root and a personal Proxmox admin user</td></tr>
+      <tr><td><span class="status-pill repo">Phase 9</span></td><td>Provision the <code>ugo-lan</code> runner VM on pve1</td></tr>
+      <tr><td><span class="status-pill repo">first deploy</span></td><td>Required reviewers on the GitHub production environment</td></tr>
+      <tr><td><span class="status-pill repo">first deploy</span></td><td>Confirm Redis Sentinel accepts the Redis password</td></tr>
+      <tr><td><span class="status-pill repo">cutover</span></td><td>Rotate the Pi's Postgres, Redis and Neo4j passwords</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ─────────── File map ─────────── -->
+  <section class="block" id="filemap">
+    <h2 style="font-size:22px;margin-bottom:16px;">File map by phase</h2>
+    <div class="table-wrap">
+    <table class="codemap">
+      <tr><th>Phase</th><th>Path</th></tr>
+      <tr><td>03 &middot; Proxmox cluster</td><td class="mono">infra/cluster/03-proxmox-cluster.sh, infra/cluster/hosts/</td></tr>
+      <tr><td>04 &middot; VMs</td><td class="mono">infra/cluster/04-vm-template.sh, 04-clone-and-prep-vm.sh</td></tr>
+      <tr><td>05 &middot; k3s</td><td class="mono">infra/cluster/05-bootstrap-k3s.sh</td></tr>
+      <tr><td>06 &middot; Platform</td><td class="mono">infra/cluster/06-install-platform.sh, infra/k8s/platform/</td></tr>
+      <tr><td>07 &middot; App changes</td><td class="mono">api/main.py, infra/redis_client.py, infra/jobs.py, Dockerfile</td></tr>
+      <tr><td>08 &middot; Manifests</td><td class="mono">infra/k8s/app/</td></tr>
+      <tr><td>09 &middot; CI/CD</td><td class="mono">.github/workflows/ci.yml</td></tr>
+      <tr><td>10 &middot; Migration</td><td class="mono">infra/migration/</td></tr>
+      <tr><td>11 &middot; Day-2</td><td class="mono">infra/cluster/11-restore-drill.sh, 11-monthly-maintenance.sh</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <footer>
+    Built from the Ugo HA cluster runbook and the repo as of 2026-11-04. Private network
+    addresses and the internal domain are deliberately left out of this page.
+    <br><br>
+    Companion pages: <a href="../">About Ugo Intelligence</a>
+    &middot; <a href="../reference/">Pipeline and infrastructure reference</a>
+  </footer>
+
+</main>
+
+<script>
+  document.getElementById("themeToggle").addEventListener("click", function () {
+    var root = document.documentElement;
+    var current = root.getAttribute("data-theme") || "dark";
+    var next = current === "dark" ? "light" : "dark";
+    window.__ugoThemeApply(next);
+    try { localStorage.setItem(window.__ugoThemeKey, next); } catch (e) {}
+  });
+</script>
+
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>(function(){
+var PAL={light:{surface:"#eef0f6",text:"#1a1d29",line:"#5b6178",border:"#8b90a8",bg:"#ffffff"},
+         dark:{surface:"#1f2333",text:"#e8e9f1",line:"#9196ad",border:"#4a5072",bg:"#171a26"}};
+if(typeof mermaid==='undefined')return;
+var items=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).map(function(pre){
+  var mount=document.createElement('div');mount.className='mermaid-diagram';
+  return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement,seq=0,gen=0,lastKey='';
+function render(){
+  var theme=root.getAttribute('data-theme');
+  var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+  var key=dark?'d':'l'; if(key===lastKey)return; lastKey=key;
+  var g=++gen, pal=dark?PAL.dark:PAL.light;
+  var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+  mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',
+    flowchart:{useMaxWidth:false,curve:'basis'},
+    themeVariables:{background:pal.bg,mainBkg:pal.surface,primaryColor:pal.surface,
+      primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+      nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:pal.bg,
+      clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,darkMode:dark,
+      fontSize:'15px',fontFamily:font},
+    themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 1.5px; }'});
+  items.forEach(function(it){
+    var id='ugo-mmd-'+seq++;
+    mermaid.render(id,it.src).then(function(r){
+      if(g!==gen)return;
+      it.mount.innerHTML=r.svg;
+      if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+      it.pre.style.display='none';
+    },function(){
+      var s=document.getElementById(id); if(s)s.remove();
+      s=document.getElementById('d'+id); if(s)s.remove();
+      if(g!==gen)return;
+      if(it.mount.parentNode)it.mount.remove();
+      it.pre.style.display='';
+    });
+  });
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+
+</body>
+</html>
